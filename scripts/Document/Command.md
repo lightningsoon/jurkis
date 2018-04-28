@@ -1,0 +1,4 @@
+开相机，普通两种图像
+roslaunch realsense2_camera rs_camera.launch
+开相机RGBD
+roslaunch realsense2_camera rs_rgbd.launch

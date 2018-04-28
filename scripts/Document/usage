@@ -1,0 +1,9 @@
+#首先创建验证训练数据集
+
+程序在
+/Users/huanghao/PycharmProjects/Creat_Train_Test_MyDataset
+
+导出冻结的模型参数
+
+#然后使用本程序包进行推理
+也没啥好说的？
