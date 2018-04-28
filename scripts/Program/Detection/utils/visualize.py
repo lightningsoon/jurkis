@@ -5,7 +5,13 @@ using opencv to implement visualization
 import cv2
 import numpy as np
 import logging
+from ...Outline import contour
 
+
+# a=list(map
+#        (tuple,np.random.randint(0,255,(100,3))))
+# for i in range(25):
+#     print('%s, %s, %s, %s,' % (a[i*4],a[i*4+1],a[i*4+2],a[i*4+3]))
 color_map = [(226, 230, 224), (74, 123, 60), (1, 112, 192), (122, 103, 253),
                  (20, 242, 6), (247, 28, 99), (161, 91, 62), (85, 78, 178),
                  (63, 46, 225), (12, 141, 224), (115, 59, 49), (250, 207, 28),
@@ -59,7 +65,7 @@ def attach_box_text2image(image, num, boxs, classes, scores, max_boxes_to_draw=1
         # circle_points['cup']=draw1Pic(num, cup_indices, scores, min_score_thresh, boxs, image, 47)
         bowl_indices = np.argwhere(classes == 51)
         # circle_points['bowl']=draw1Pic(num, bowl_indices, scores, min_score_thresh, boxs, image, 51)
-        #TODO !!!合并
+        # !!!合并
         indices1=np.append(cup_indices,bowl_indices)
         indices2=np.argwhere((scores>min_score_thresh)==True).ravel()
         indices=set(indices1)&set(indices2)
@@ -71,6 +77,7 @@ def attach_box_text2image(image, num, boxs, classes, scores, max_boxes_to_draw=1
         what=(None,None)
     return what
     pass
+myWhere_am_I=contour.Where_am_I()
 def mixFuc_crucial(image,boxs,scores,length):
     '''
     这个函数非常重要!!
@@ -88,28 +95,32 @@ def mixFuc_crucial(image,boxs,scores,length):
     :param length:
     :return:可能是接下来要抓取点（二维），也可能没有可以抓的点
     '''
-    from ...Outline import contour
+
     global height, width,j,color_map
     img_raw = image.copy()
-    grasp_points,new_indices,grasp_dists=[],[],[]
+    grasp_points,new_indices,grasp_dists,kinds=[],[],[],[]
     for i in range(length):
+        ##############
+
         ymin, xmin, ymax, xmax = list(map(int, (boxs[i][0] * height, boxs[i][1] * width,
                                                 boxs[i][2] * height, boxs[i][3] * width)))
+
+        ##############
+        # 画圈
         y0, y1, x0, x1 = max(0, ymin - 5), min(480, ymax + 5), \
                          max(0, xmin - 5), min(640, xmax + 5)
-        image[y0:y1, x0:x1], circle_point = contour.circle(img_raw[y0:y1, x0:x1],
+        img_raw_mini=img_raw[y0:y1, x0:x1]
+        image[y0:y1, x0:x1], circle_point = contour.circle(img_raw_mini,
                                                            image[y0:y1, x0:x1])
+        temp_kind=contour.which_kind_is(img_raw_mini)
         if circle_point:
             new_indices.append(i)#记录有圆圈点索引
-            temp=contour.calculate_grasp_point(circle_point)#第一个是点，第二个距离
+            temp=myWhere_am_I.calculate_grasp_point(circle_point)#第一个是点，第二个距离
             grasp_points.append(temp[0])#记录最近的点
             grasp_dists.append(temp[1])
-        cv2.rectangle(image,
-                      (xmin, ymin),
-                      (xmax, ymax),
-                      color_map[i], 3, cv2.LINE_AA)
-        cv2.putText(image, str(scores[i]), (xmin, ymin),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, 8)
+            kinds.append()
+        #画框
+        rectangle(image,ymin, xmin, ymax, xmax,scores[i],color_map[i])
     # 看哪个圈点点适合抓取
     if len(new_indices) != 0:
         min_grasp_dist_index = np.argmin(grasp_dists)
@@ -117,7 +128,15 @@ def mixFuc_crucial(image,boxs,scores,length):
         return grasp_points[min_grasp_dist_index]
     return (None,None)
 
-
+def rectangle(image,ymin, xmin, ymax, xmax,score_i,color_map_i):
+    # 画框
+    cv2.rectangle(image,
+                  (xmin, ymin),
+                  (xmax, ymax),
+                  color_map_i, 3, cv2.LINE_AA)
+    cv2.putText(image, str(score_i), (xmin, ymin),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, 8)
+'''
 def draw1Pic(num, indices, scores, min_score_thresh, boxs, image, class_index):
     from ...Outline import contour
     global height, width,j
@@ -175,8 +194,4 @@ def draw1Pic(num, indices, scores, min_score_thresh, boxs, image, class_index):
         return new_indices[min_grasp_dist_index]
     return None
 
-
-# a=list(map
-#        (tuple,np.random.randint(0,255,(100,3))))
-# for i in range(25):
-#     print('%s, %s, %s, %s,' % (a[i*4],a[i*4+1],a[i*4+2],a[i*4+3]))
+'''

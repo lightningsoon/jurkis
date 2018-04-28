@@ -107,7 +107,7 @@ def minor(frame):
     '''
     output_dict = inference(frame)
     # Visualization of the results of a detection.
-    GraspPoint2D=vis_util.attach_box_text2image(
+    GraspPoint2D,difference=vis_util.attach_box_text2image(
         frame,
         output_dict['num_detections'],
         output_dict['detection_boxes'],
@@ -115,7 +115,7 @@ def minor(frame):
         output_dict['detection_scores'],
         max_boxes_to_draw=5)
     # print(output_dict)
-    return frame,GraspPoint2D
+    return frame,GraspPoint2D,difference
 
 if __name__ == '__main__':
     main()

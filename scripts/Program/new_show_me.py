@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding=utf-8 -*-
+#可以观看计算机画出自己中心坐标
 from threading import Thread
 from Outline import contour
 import json

@@ -49,6 +49,10 @@ def circle(img_bgr, img_tgt,circle_point):
     return img_tgt,None
     pass
 
+def which_kind_is(img):
+    #@小弘
+
+    pass
 class Point(object):
     def __init__(self,coor_in_img=None):
         '''
@@ -128,7 +132,6 @@ class Where_am_I(object):
         :param point_set:
         :return:
         '''
-        import numpy as np
         point_set=np.array(point_set)
         arm_center=np.array(self.arm_center)
         distances=np.linalg.norm(point_set-arm_center,axis=1)

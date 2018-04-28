@@ -71,18 +71,22 @@ class Communicate_with_SCM(object):
         self.ser.close()
         logger.info('serial closed')
 
-    def writeSCM(self, something=[1468, 600, 1300, 1000, 1550, 1060],time=1000):
+    def writeSCM(self, something=[1468, 600, 1100, 1000, 1350, 1060], time=1000):
         '''
         将列表转成bytes 加上 \n
         :param something: list
         :param time: int 动作运行时间，ms
         :return:
         '''
-        something=something+[time]
-        something =list(map(str,something))
-        something=','.join(something)
-        logger.info('send %s to SCP'%(something))
-        self.ser.write(something+'!')
+        if len(something) == 7:
+            # （6个参数和一个时间）
+            pass
+        elif len(something) == 6:
+            something = something + [time]
+        something = list(map(str, something))
+        something = ','.join(something)
+        logger.info('send %s to SCP' % (something))
+        self.ser.write(something + '!')
 
     def readStatu(self):
         time.sleep(2)
