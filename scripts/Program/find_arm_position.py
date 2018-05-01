@@ -60,7 +60,7 @@ def main2(COOR):
     if L>=9:
         coor = [COOR[1], COOR[L // 2], COOR[-1]]
         points = list(map(contour.Point, coor))
-        final_cen=contour.Whereismy_center.calculate_circle_center(*points)
+        final_cen = contour.Where_am_I.calculate_circle_center(*points)
         final_cen=list(map(int,final_cen))
         print(final_cen, 'saved in', os.path.abspath('./'))
         with  open('arm_center.json','w') as fp:

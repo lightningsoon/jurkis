@@ -148,9 +148,9 @@ if __name__ == '__main__':
     cb = CvBridge()
     myContact = Communicate_with_SCM()
     # 开启线程
-    # mythread = Thread(target=run)
-    # mythread.daemon=True
-    # mythread.start()
+    mythread = Thread(target=run)
+    mythread.daemon = True
+    mythread.start()
     # instance
     myWorker = Worker()
     myWaI = contour.Where_am_I()
