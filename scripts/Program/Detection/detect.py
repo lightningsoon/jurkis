@@ -9,8 +9,8 @@ if tf.__version__ < '1.5.0':
     raise ImportError('Please upgrade your tensorflow installation to v1.4.* or later!')
 
 from utils import label_map_util
-from utils import visualize as vis_util
-# Path to frozen detection graph. 
+import core
+# Path to frozen detection graph.
 PATH_TO_CKPT = os.path.join('/home/momo/catkin_ws/src/jurvis/scripts/Program/Detection/model', 'frozen_inference_graph.pb')
 # List of the strings that is used to add correct label for each box.
 PATH_TO_LABELS = os.path.join('/home/momo/catkin_ws/src/jurvis/scripts/Program/Detection/model/', 'mscoco_label_map.pbtxt')
@@ -70,7 +70,7 @@ def main():
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT,480)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH,640)
     ret, frame = cap.read()
-    vis_util.constant(frame,category_index)
+    core.constant(frame,category_index)
     while True:
         ret, frame = cap.read()
         # Actual detection.
@@ -78,7 +78,7 @@ def main():
         output_dict = inference(frame)
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         # Visualization of the results of a detection.
-        vis_util.attach_box_text2image(
+        core.master(
             frame,
             output_dict['num_detections'],
             output_dict['detection_boxes'],
@@ -97,7 +97,7 @@ def main():
 
 # 下面是给ros用的
 def properity(height,width):
-    vis_util.constant4ros(category_index,height,width)
+    core.constant4ros(category_index,height,width)
 def minor(frame):
     # minor是main的青春版
     '''
@@ -105,9 +105,10 @@ def minor(frame):
     :param frame:
     :return:
     '''
+    # 5 目标检测
     output_dict = inference(frame)
     # Visualization of the results of a detection.
-    GraspPoint2D,difference=vis_util.attach_box_text2image(
+    GraspPoint2D,difference=core.master(
         frame,
         output_dict['num_detections'],
         output_dict['detection_boxes'],

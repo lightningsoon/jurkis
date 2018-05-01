@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding=utf-8 -*-
-#可以观看计算机画出自己中心坐标
+
+# 请合并到main.py
+# 测试程序
+# 可以观看计算机画出自己中心坐标
 from threading import Thread
 from Outline import contour
 import json
@@ -35,8 +38,6 @@ def main1():
         # cv2.imshow('depth_rgb', mySS.frame_depth_rgb)
         mySS.frame_rgb=myWaI.draw_grasp_point_and_arm_center(mySS.frame_rgb,mySS.coor[:2])
         cv2.imshow('chendushow', mySS.frame_rgb)
-        # print('??')
-        # cv2.imshow('depth_gray', mySS.frame_depth_gray)
         flag = cv2.waitKey(30) & 0xFF
         if flag == 27:
             rospy.signal_shutdown("User hit ESC key to quit.")

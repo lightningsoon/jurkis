@@ -12,7 +12,8 @@ from Program.Calibration.EyeArm_Learning import Pinocchio
 import Queue
 from time import sleep
 from threading import Thread
-
+from Program.Outline import contour,cluster
+cluster.restore_model()
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
 
@@ -27,14 +28,12 @@ class Worker(Sense_Self, Pinocchio):
         self.grasp_point=[None]*3
         self.target = None
         self.kind = None  # 种类名字
-        self.num = {}  # 每种数量
-        self.__posi = {}  # 每种位置
-        # TODO 填写可以摆放的位置（未完成）
-        self.__setPosi = [1000,800,600,400]
+        self.num = [0]*5  # 每种数量
+        # TODO 填写可以摆放的位置
+        self.__setPosi = [1200,1000,800,600,400]
         pass
 
     def convert_Color(self, img):
-        # 目标检测
         try:
             img = cb.imgmsg_to_cv2(img, 'bgr8')
         except CvBridgeError, e:
@@ -43,11 +42,13 @@ class Worker(Sense_Self, Pinocchio):
 
     def working(self):
         '''
-        工作部分，接在图像转格式存储后面
+        5 工作部分，接在图像转格式存储后面
         :return:
         '''
-        result, self.__x[:2],self.kind = minor(self.frame_rgb)
-        self.grasp_point = self.__x  # 把数据带到外面来
+        result, self.grasp_point[:2],self.kind = minor(self.frame_rgb)# 把数据带到外面来
+        if self.grasp_point[:2]!=[None,None] and myWorker.wait_or_act==True:#可以执行并且，机械臂等待中
+            self.grasp_point[2]=self.getDeepth()
+            myWorker.wait_or_act=False#开始让子线程工作
         return result
         pass
 
@@ -58,50 +59,40 @@ class Worker(Sense_Self, Pinocchio):
         :param target:[2:6]
         :return:
         '''
-        # TODO 以后依靠识别，配合有监督示范
-        # TODO 坑的位置
-        cave=1000
-        actions = [
-            [1200, 600 ] + target + [600],  # 到达
-            [1700, 600]+target + [50],  # 合上爪子
-            [1700, 600, 1900, 1000, 1500, target[3], 500],  # 抬高
-            [1700, 600, 1900, 1000, 1500, cave, 700],  # 到桶上
-            [1700, 2500, 1900, 1000, 1500, cave, 500],  # 倾倒
-            # [1700, 2500, 1800, 1000, 1500, cave, 20],  # 倾倒-抖一下
-            # [1700, 2500, 2000, 1000, 1500, cave, 20],  # 倾倒-抖一下
-            [1700, 600, 1900, 1000, 1500, 1200, 400],  # 转回
-            [1700, 600, 1900, 1000, 1950, 1200, 800],  # 下落
-            [1300, 600, 1900, 1000, 1950, 1200],  # 摆放
-            [1200, 600, 1100, 1000, 1350, 1200, 600]  # 归位
-        ]
-        # 打开爪子
-        # 去
-        # 夹住
-        # 抬高
-        # 到桶的上方
-        # 倾倒
-        # 摆放
-        # 收工
-        pass
-
-    def stack(self):
-        # TODO 搬到合适点位置（未完成） 计数
-        if self.kind in self.num.keys():
-            self.num[self.kind] += 1
-            # TODO 每个要移动高一点，算一下，太高了要重新选位置（未完成）
-            seat = self.__posi[self.kind]
-            Communicate_with_SCM.writeSCM(seat)
+        cave=1400# TODO 坑的位置
+        # 统计一下数量情况
+        if self.num[self.kind]<5:
+            elevate=1950-self.num[self.kind]*100
+            self.num[self.kind]+=1
+            # TODO 以后依靠识别，配合有监督示范
+            # TODO 以后在初始化时，写到下位机
+            actions0 = []
         else:
-            # 第一次见到，计数归零，分配位置
-            self.num[self.kind] = 0
-            self.__posi[self.kind] = self.__getPosi()
+            #到了5只碗高，推一下
+            elevate=1950
+            actions0=[
+                [1200, 1600, 1300, 1000, elevate, self.__setPosi[self.kind], 400],  # 转回
+                [1200, 1600, 1700, 1200, elevate, self.__setPosi[self.kind], 400],  # 推出
+                [1200, 1600, 1200, 1000, 1350, self.__setPosi[self.kind], 300]  # 归位
+            ]
+        actions=actions0+\
+                [
+                    [1200, 600] + target + [600],  # 到达
+                    [1700, 600] + target + [50],  # 合上爪子
+                    [1700, 600, 1900, 1000, 1500, target[3], 500],  # 抬高
+                    [1700, 600, 1900, 1000, 1500, cave, 700],  # 到桶上
+                    [1700, 2500, 1900, 1000, 1500, cave, 500],  # 倾倒
+                    # [1700, 2500, 1800, 1000, 1500, cave, 20],  # 倾倒-抖一下
+                    # [1700, 2500, 2000, 1000, 1500, cave, 20],  # 倾倒-抖一下
+                    [1700, 600, 1900, 1000, 1500, self.__setPosi[self.kind], 400],  # 转回
+                    [1700, 600, 1900, 1000, elevate, self.__setPosi[self.kind], 600],  # 下落
+                    [1300, 600, 1900, 1000, elevate, self.__setPosi[self.kind], 800],  # 摆放
+                    [1200, 600, 1200, 1000, 1350, self.__setPosi[self.kind], 600]  # 归位
+                ]
+        return actions
         pass
 
-    def __getPosi(self):
-        for x in self.__setPosi:
-            yield x
-        print("!!!!!! Position is not enough  !!!!!! ")
-        exit()
+
 
     pass
 
@@ -114,9 +105,12 @@ def clean():
 def main():
     print('start')
     while True:
+        # 4 获取图像
         ros_spinOnce()
+        # 5 处理数据
         res = myWorker.working()
         cv2.imshow('res', res)
+        myWorker.frame_rgb=myWaI.draw_grasp_point_and_arm_center(myWorker.frame_rgb,myWorker.grasp_point)
         cv2.imshow('rgb', myWorker.frame_rgb)
         # cv2.imshow('depth_gray', mySS.frame_depth_gray)
         cv2.imshow('depth_rgb', myWorker.frame_depth_rgb)
@@ -136,16 +130,16 @@ def run():
     print('----------Assist----------')
     while True:
         sleep(0.2)
-        if myWorker.grasp_point[:2] != [None, None] and myWorker.wait_or_act == True:
-            # 检测到数据&机械臂正在等待
+        if  myWorker.wait_or_act == False:
             # 预测参数，并发送，反转控制器
-            myWorker.wait_or_act = not myWorker.wait_or_act  # 关闭预测
-            myWorker.grasp_point[2] = myWorker.getDeepth()
             if myWorker.grasp_point[2] != 0:
                 myWorker.target = myWorker.predict(myWorker.coor)  # 存上参数
-                myWorker.execute_a_set_of_action(myWorker.target)
-                if myContact.readStatu():
-                    myWorker.wait_or_act = not myWorker.wait_or_act
+                actions=myWorker.execute_a_set_of_action(myWorker.target)
+                for a in actions:
+                    myContact.writeSCM(a)
+                    if myContact.readStatu():
+                        pass
+                myWorker.wait_or_act = not myWorker.wait_or_act#开启等待状态
     pass
 
 
@@ -159,7 +153,9 @@ if __name__ == '__main__':
     # mythread.start()
     # instance
     myWorker = Worker()
-    # rosnode
+    myWaI = contour.Where_am_I()
+    # 3.rosnode
+    # 3 开始工作，订阅和初始化一些参数
     node_name = 'jurvis_worker'
     rospy.init_node(node_name)
     rospy.on_shutdown(clean)

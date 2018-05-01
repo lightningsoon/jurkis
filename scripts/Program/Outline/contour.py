@@ -27,7 +27,7 @@ def binaryMask(image_rgb):
     return res
 
 
-def circle(img_bgr, img_tgt,circle_point):
+def circle(img_bgr,circle_point):
     # 预处理
     # 提取轮廓，得到唯一边缘点
     # 边缘提取
@@ -43,16 +43,14 @@ def circle(img_bgr, img_tgt,circle_point):
             S1 = cv2.contourArea(cnt)
             S2 = math.pi * ellipse[1][0] * ellipse[1][1] / 4
             if 0.93 < S1 / S2 < 1.07 and 0.9 > S2 / square > 0.3:
-                cv2.ellipse(img_tgt, ellipse, (255, 0, 0), 2)
-                return img_tgt,ellipse
+                return ellipse
     # cv2.imshow('tmp', img_bin)
-    return img_tgt,None
+    return None
     pass
 
-def which_kind_is(img):
-    #@小弘
 
-    pass
+
+
 class Point(object):
     def __init__(self,coor_in_img=None):
         '''

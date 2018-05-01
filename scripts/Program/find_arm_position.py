@@ -59,13 +59,7 @@ def main2(COOR):
     L=len(COOR)
     if L>=9:
         coor = [COOR[1], COOR[L // 2], COOR[-1]]
-        # centers = []
         points = list(map(contour.Point, coor))
-        # for i in range(len(coor) - 2):
-        #     centers.append(contour.calculate_circle_center(*points[i:i + 3]))
-        # print(centers)
-        # final_cen = np.mean(centers, axis=0)
-        # print(final_cen)
         final_cen=contour.Whereismy_center.calculate_circle_center(*points)
         final_cen=list(map(int,final_cen))
         print(final_cen, 'saved in', os.path.abspath('./'))
@@ -73,18 +67,20 @@ def main2(COOR):
             json.dump(final_cen, fp)
     else:
         print('数据不足，重新设置位置')
-    print 'end'
+    print('end')
     myCS.closeSerial()
-    COOR[0]='end'
-if __name__ == '__main__':
+    COOR[0]='end'#退出了
+def fun():
     #
-    COOR = [None]#第0位当作通信口
+    COOR = [None]  # 第0位当作通信口
     thread1 = Thread(target=main2, args=(COOR,))
     thread1.daemon = True
     thread1.start()
     try:
         main1(COOR)
-    except :
+    except:
         myCS.home_arm()
         myCS.closeSerial()
         exit()
+if __name__ == '__main__':
+    fun()
