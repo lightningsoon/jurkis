@@ -18,8 +18,12 @@ size = 3
 kernel = np.ones((size, size), dtype=np.uint8)
 
 
-def binaryMask(image_rgb):
-    gray = cv2.cvtColor(image_rgb, cv2.COLOR_BGR2GRAY)
+def binaryMask(image_0):
+    if image_0.shape[2]==3:
+        gray = cv2.cvtColor(image_0, cv2.COLOR_BGR2GRAY)
+    else:
+        gray=image_0
+    gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5, 5), 2)  # 高斯滤波
     # blur = cv2.bilateralFilter(gray, 9, 75, 75)  # 双边滤波
     res = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 0)
@@ -27,7 +31,7 @@ def binaryMask(image_rgb):
     return res
 
 
-def circle(img_bgr,circle_point):
+def circle(img_bgr,img_4_draw):
     # 预处理
     # 提取轮廓，得到唯一边缘点
     # 边缘提取
@@ -43,9 +47,10 @@ def circle(img_bgr,circle_point):
             S1 = cv2.contourArea(cnt)
             S2 = math.pi * ellipse[1][0] * ellipse[1][1] / 4
             if 0.93 < S1 / S2 < 1.07 and 0.9 > S2 / square > 0.3:
-                return ellipse
+                img_4_draw=cv2.ellipse(img_4_draw,ellipse,color=(230,0,0),thickness=2)
+                return img_4_draw,cnt
     # cv2.imshow('tmp', img_bin)
-    return [None]
+    return img_4_draw,0
     pass
 
 
@@ -72,7 +77,7 @@ class Where_am_I(object):
         if os.path.isfile(self.filename):
             with open(self.filename,'r') as f:
                 arm_center=json.load(f)
-                # print(arm_center)
+                # print("arm_center",arm_center)
                 return arm_center
         else:
             print("%s文件不存在" % (self.filename))
@@ -134,6 +139,7 @@ class Where_am_I(object):
         '''
         point_set=np.array(point_set)
         arm_center=np.array(self.arm_center)
+        # print(point_set,arm_center)
         distances=np.linalg.norm(point_set-arm_center,axis=1)
         # print(distances)
         mindis_index=np.argmin(distances)

@@ -32,22 +32,29 @@ sometime=0.7
 # print('111')
 def main1():
     sleep(sometime*2)
+    mySS.waitRosMsg()
     print('main1')
     # cv2.namedWindow('chendushow',cv2.WINDOW_KEEPRATIO)
+    k=0
     while True:
         ros_spinOnce()
         # cv2.imshow('depth_rgb', mySS.frame_depth_rgb)
-        mySS.frame_rgb, _,_ = detect.minor(mySS.frame_rgb)
+        cv2.imshow('depth_gray', mySS.frame_depth_gray)
+        # mySS.frame_rgb, _,_ = detect.minor(mySS.frame_rgb)
         # print("gg5")
-        mySS.frame_rgb=myWaI.draw_grasp_point_and_arm_center(mySS.frame_rgb,mySS.coor[:2])
+        # mySS.frame_rgb=myWaI.draw_grasp_point_and_arm_center(mySS.frame_rgb,mySS.coor[:2])
         # print("gg6")
-        cv2.imshow('chendushow', mySS.frame_rgb)
+        # cv2.imshow('chendushow', mySS.frame_rgb)
         flag = cv2.waitKey(30) & 0xFF
         if flag == 27:
             rospy.signal_shutdown("User hit ESC key to quit.")
             cv2.destroyAllWindows()
             myCS.home_arm()
             break
+        elif flag==32:
+            print("save a jpg")
+            cv2.imwrite(str(k)+".jpg",mySS.frame_depth_gray)
+            k+=1
 
 def main2():
     print('main2 start')
@@ -66,8 +73,8 @@ def main2():
 if __name__ == '__main__':
     #
     detect.properity(480, 640)
-    thread1 = Thread(target=main2, args=())
-    thread1.daemon = True
+    # thread1 = Thread(target=main2, args=())
+    # thread1.daemon = True
     # thread1.start()
     try:
         main1()

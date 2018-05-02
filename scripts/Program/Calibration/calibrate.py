@@ -254,7 +254,7 @@ class Sense_Self(object):
         # TODO 解算距离-ros_cv2__bridge
         self.__depth_array[:, :, 0] = np.array(depth_image * 180 / 10000, dtype=np.uint8)  # hsv
         self.frame_depth_rgb = cv2.cvtColor(self.__depth_array, cv2.COLOR_HSV2BGR)
-        self.frame_depth_gray = np.array(depth_image * 255 / 10000, dtype=np.uint8)  # gray
+        self.frame_depth_gray = cv2.cvtColor(self.frame_depth_rgb,cv2.COLOR_BGR2GRAY)  # gray
         pass
 
     def waitRosMsg(self):
