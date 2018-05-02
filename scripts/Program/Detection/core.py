@@ -24,7 +24,7 @@ color_map = [(226, 230, 224), (74, 123, 60), (1, 112, 192), (122, 103, 253),
                  (227, 189, 169), (8, 140, 109), (234, 39, 60), (105, 119, 241),
                  (189, 8, 114), (156, 66, 223), (123, 73, 210), (238, 9, 62),
                  (219, 107, 253), (208, 138, 243), (178, 53, 126), (186, 75, 66),
-                 (114, 206, 193), (176, 56, 167), (168, 145, 197), (119, 242, 14),
+                 (114, 206, 193), (176, 56, 167), (168, 105, 197), (119, 242, 14),
                  (119, 77, 98), (96, 251, 221), (27, 20, 71), (131, 104, 170),
                  (144, 245, 225), (169, 173, 177), (249, 39, 127), (237, 227, 168),
                  (152, 22, 34), (148, 115, 46), (158, 102, 58), (33, 83, 139),
@@ -66,16 +66,21 @@ def master(image, num, boxs, classes, scores, max_boxes_to_draw=10, min_score_th
         indices1=np.append(cup_indices,bowl_indices).ravel()
         indices2=np.argwhere((scores>min_score_thresh)==True).ravel()
         indices=np.intersect1d(indices1,indices2)
-        # print(indices,type(indices))
+        # print("gg10")
         if len(indices)>0:
+            # print("gg9", len(indices))
             # 根据分值和类别得到索引
             boxs=boxs[indices][:max_boxes_to_draw]
-            scores=scores[indices][:max_boxes_to_draw]
+            scores=scores[indices][:max_boxes_to_draw]#bug不一定能全部读取到啊
+            # print("gg11",scores)
             # 6、7 圈点框，找和画
-            what=mixFuc_crucial(image,boxs,scores,max_boxes_to_draw)
-            return what
-    what=(None,None),None
-    return what
+            image,what0,what1=mixFuc_crucial(image,boxs,scores,len(boxs))
+            # print("gg12")
+            result=[image,what0,what1]
+            # print("gg3",result[1:],"indices",indices)
+            return result
+    result=[image,(None,None),None]
+    return result
     pass
 
 myWhere_am_I=contour.Where_am_I()
@@ -102,34 +107,40 @@ def mixFuc_crucial(image,boxs,scores,length):
     '''
 
     global height, width,j,color_map
+    try:
+        height,width
+    except:
+        print("忘记配置ros了 constant4ros")
+        exit()
     img_raw = image.copy()
     grasp_points,new_indices,grasp_dists=[],[],[]#抓取点，有圈的索引，抓取距离
+    # print(boxs,scores,length)
     for i in range(length):
         ##############
-
         ymin, xmin, ymax, xmax = list(map(int, (boxs[i][0] * height, boxs[i][1] * width,
                                                 boxs[i][2] * height, boxs[i][3] * width)))
-
+        # print("第%d个，加油！" % (i))
         ##############
         y0, y1, x0, x1 = max(0, ymin - 5), min(480, ymax + 5), \
                          max(0, xmin - 5), min(640, xmax + 5)
-        img_raw_mini=img_raw[y0:y1, x0:x1,:]
+        img_raw_mini=img_raw[y0:y1, x0:x1]
         # 7.1 找+画 圈
-        # print(image,type(image),image.shape)
-        image[y0:y1, x0:x1,:], circle_point = contour.circle(img_raw_mini,
-                                                           image[y0:y1, x0:x1,:])
+        # print("circle",type(image),image.shape)
+        image[y0:y1, x0:x1], circle_point = contour.circle(img_raw_mini,image[y0:y1, x0:x1])
         #有圈
-        # print("yes1")
-        if np.all(circle_point!=None):
+        # print("yes1",circle_point)
+        if circle_point != 0:
+            # print("gg")
             new_indices.append(i)#记录有圆圈点索引
             temp=myWhere_am_I.calculate_grasp_point(circle_point)#return第一个是点，第二个距离
             grasp_points.append(temp[0])#记录最近的点
             grasp_dists.append(temp[1])
         # 7.2 画框
-        rectangle(image,ymin, xmin, ymax, xmax,scores[i],color_map[i])
+        # print("gg1")
+        image=rectangle(image,ymin, xmin, ymax, xmax,scores[i],color_map[i])
     # 看哪个圈的点适合抓取
     if len(new_indices) != 0:
-        # print("yes2")
+        # print("yes2","new_indices",new_indices)
         min_grasp_dist_index = np.argmin(grasp_dists).ravel()[0]
         # 7.2 查看当前框的种类
         temp_indc=new_indices[min_grasp_dist_index]
@@ -139,9 +150,12 @@ def mixFuc_crucial(image,boxs,scores,length):
                          max(0, xmin - 5), min(640, xmax + 5)
         img_raw_mini=img_raw[y0:y1, x0:x1]
         temp_kind=myWho_am_I.get_kind(img_raw_mini)
-        # cv2.drawMarker(image, tuple(grasp_points[min_grasp_dist_index]), (0, 0, 255), cv2.MARKER_STAR, 10, 2)
-        return grasp_points[min_grasp_dist_index],temp_kind
-    return (None,None),None
+        temp_grasp_point=grasp_points[min_grasp_dist_index]
+    else:
+        temp_grasp_point=(None,None)
+        temp_kind=None
+    # print("gg2",temp_grasp_point,"kind",temp_kind)
+    return image,temp_grasp_point,temp_kind
 
 def rectangle(image,ymin, xmin, ymax, xmax,score_i,color_map_i):
     # 画框
@@ -151,6 +165,7 @@ def rectangle(image,ymin, xmin, ymax, xmax,score_i,color_map_i):
                   color_map_i, 3, cv2.LINE_AA)
     cv2.putText(image, str(score_i), (xmin, ymin),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, 8)
+    return image
 
 '''
 def draw1Pic(num, indices, scores, min_score_thresh, boxs, image, class_index):

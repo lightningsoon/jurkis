@@ -66,10 +66,12 @@ def inference(image):
     return output_dict
 
 def main():
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(-1)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT,480)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH,640)
+
     ret, frame = cap.read()
+
     core.constant(frame,category_index)
     while True:
         ret, frame = cap.read()
@@ -84,7 +86,7 @@ def main():
             output_dict['detection_boxes'],
             output_dict['detection_classes'],
             output_dict['detection_scores'],
-        max_boxes_to_draw=3)
+        max_boxes_to_draw=8)
         # print(output_dict)
         cv2.imshow('',frame)
         flag=cv2.waitKey(30)
@@ -95,8 +97,8 @@ def main():
         pass
 
 
-# 下面是给ros用的
-def properity(height,width):
+# 别忘记配置 下面是给ros用的
+def properity(height=480,width=640):
     core.constant4ros(category_index,height,width)
 def minor(frame):
     # minor是main的青春版
@@ -108,14 +110,15 @@ def minor(frame):
     # 5 目标检测
     output_dict = inference(frame)
     # Visualization of the results of a detection.
-    GraspPoint2D,difference=core.master(
+    frame,GraspPoint2D,difference=core.master(
         frame,
         output_dict['num_detections'],
         output_dict['detection_boxes'],
         output_dict['detection_classes'],
         output_dict['detection_scores'],
-        max_boxes_to_draw=5)
+        max_boxes_to_draw=8)
     # print(output_dict)
+    # print("gg4","GP",GraspPoint2D,"diff",difference)
     return frame,GraspPoint2D,difference
 
 if __name__ == '__main__':

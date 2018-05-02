@@ -13,7 +13,8 @@ from time import sleep
 import rospy
 import cv2
 from sensor_msgs.msg import Image
-os.chdir('/home/momo/catkin_ws/src/jurvis/scripts/Program/')
+from Detection import detect
+os.chdir('/home/momo/Project/jurkis_ws/src/jurvis/scripts/Program/')
 #
 from Calibration.calibrate import Communicate_with_SCM, Sense_Self, ros_spinOnce,ArmEye_collectingData
 
@@ -36,7 +37,10 @@ def main1():
     while True:
         ros_spinOnce()
         # cv2.imshow('depth_rgb', mySS.frame_depth_rgb)
+        mySS.frame_rgb, _,_ = detect.minor(mySS.frame_rgb)
+        # print("gg5")
         mySS.frame_rgb=myWaI.draw_grasp_point_and_arm_center(mySS.frame_rgb,mySS.coor[:2])
+        # print("gg6")
         cv2.imshow('chendushow', mySS.frame_rgb)
         flag = cv2.waitKey(30) & 0xFF
         if flag == 27:
@@ -61,9 +65,10 @@ def main2():
 
 if __name__ == '__main__':
     #
+    detect.properity(480, 640)
     thread1 = Thread(target=main2, args=())
     thread1.daemon = True
-    thread1.start()
+    # thread1.start()
     try:
         main1()
     except :

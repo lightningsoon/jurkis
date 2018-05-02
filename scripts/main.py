@@ -14,7 +14,7 @@ from time import sleep
 from threading import Thread
 from Program.Outline import contour,cluster
 cluster.restore_model()
-fourcc = cv2.VideoWriter_fourcc(*'XVID')
+# fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
 
 # out = cv2.VideoWriter('output.mp4', fourcc, 30.0, (640, 480))
@@ -47,11 +47,11 @@ class Worker(Sense_Self, Pinocchio):
         5 工作部分，接在图像转格式存储后面
         :return:
         '''
-        result, self.grasp_point[:2],self.kind = minor(self.frame_rgb)# 把数据带到外面来
+        self.frame_rgb, self.grasp_point[:2],self.kind = minor(self.frame_rgb)# 把数据带到外面来
         if self.grasp_point[:2]!=[None,None] and myWorker.wait_or_act==True:#可以执行并且，机械臂等待中
             self.grasp_point[2]=self.getDeepth()
             myWorker.wait_or_act=False#开始让子线程工作
-        return result
+        # return result
         pass
 
     def execute_a_set_of_action(self, target):
@@ -111,7 +111,7 @@ def main():
         # 4 获取图像
         ros_spinOnce()
         # 5 处理数据
-        res = myWorker.working()
+        myWorker.working()
         # cv2.imshow('res', res)
         myWorker.frame_rgb=myWaI.draw_grasp_point_and_arm_center(myWorker.frame_rgb,myWorker.grasp_point)
         cv2.imshow('rgb', myWorker.frame_rgb)
@@ -126,8 +126,7 @@ def main():
             # 空格记录数据
 
             pass
-
-
+    exit()
 def run():
     # 检查1.抓取完成2.摆放
     print('----------Assist----------')
@@ -150,13 +149,12 @@ if __name__ == '__main__':
     # q = Queue(1)
     cb = CvBridge()
     myContact = Communicate_with_SCM()
+    myWorker = Worker()
+    myWaI = contour.Where_am_I()
     # 开启线程
     mythread = Thread(target=run)
     mythread.daemon = True
     mythread.start()
-    # instance
-    myWorker = Worker()
-    myWaI = contour.Where_am_I()
     # 3.rosnode
     # 3 开始工作，订阅和初始化一些参数
     node_name = 'jurvis_worker'

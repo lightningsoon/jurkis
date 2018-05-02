@@ -150,6 +150,7 @@ class Who_am_I(object):
     此类给ros使用，综合上面各个函数
     '''
     def __init__(self):
+        restore_model()
         self.__cents,self.__K=save_centroid_npz(None,None)
         # print(self.__K)
         self.__get_x=get_x
