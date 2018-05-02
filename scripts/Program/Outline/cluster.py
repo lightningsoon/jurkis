@@ -17,7 +17,7 @@ import cv2
 import os
 import time
 import json
-workdir='./parameters/'
+workdir='/home/momo/Project/jurkis_ws/src/jurvis/scripts/Program/Outline/parameters/'
 def restore_model():
     global top_model
     top_model = load_model(workdir+'mobilenet.h5', custom_objects={
@@ -25,7 +25,7 @@ def restore_model():
                 'DepthwiseConv2D': mobilenet.DepthwiseConv2D})
     print('load cluster model')
 def load_data():
-    imlist = glob.glob('./Program/Outline/data/*.png')[:]
+    imlist = glob.glob('/home/momo/Project/jurkis_ws/src/jurvis/scripts/Program/Outline/data/*.png')[:]
     imgs=np.array(list(image.img_to_array(image.load_img(i,target_size=(224,224))) for i in imlist))
     #导入的图像已经成float32，不清楚
     imnbr = len(imlist)
@@ -50,22 +50,23 @@ def draw_into_a_pic(K,labels,imgs,**kwargs):
         i_sum+=len(ind)+1
 
 
-def downDimension(data,train_model=False,n_components = 18):
+def downDimension(data,train_model=False,n_components = 20):
     '''
     主成分分析,降维
     :param data:
     :return:
     '''
-    file_name=workdir+'pca'+str(n_components)+'.m'
+    file_name=workdir+'pca_'+str(n_components)+'.m'
     if train_model or not os.path.isfile(file_name):
         pca = PCA(n_components=n_components)
         pca.fit(data)
         joblib.dump(pca,file_name)
-        print('pca(n=%d) explained variance ratio: %.4f' % (n_components,np.sum(pca.explained_variance_ratio_)))
+        # print('pca(n=%d) explained variance ratio: %.4f' % (n_components,np.sum(pca.explained_variance_ratio_)))
         #('pca18 ratio:', 0.9724457)
     else:
         pca=joblib.load(file_name)
     results = pca.transform(data)
+    print('pca(n=%d) explained variance ratio: %.4f' % (n_components, np.sum(pca.explained_variance_ratio_)))
     return results
 
 
@@ -78,13 +79,14 @@ def get_x(ims):
     features=top_model.predict(imgs)
     # t2=time.time()
     # results.shape=(-1,7,7,1024)
-    # print('per picture speed time(ms):',(t2-t1)/len(features))#0.2 CPU
+    # print('per picture speed time(ms):',(t2-t1)/len(features))#0.2 CPU #0.0469 GTX 960M
     features=np.reshape(features,(len(features),-1))
     return features
-def save_centroid_npz(centroid=None,K=None,update_npz=False,filename=workdir+'sample.npz'):
+def save_centroid_npz(centroid,K,filename=workdir+'*means.npz',update_npz=False):
     #  保存 centers，K
     # 如果已经保存就恢复
-    if update_npz or not os.path.isfile(filename) :
+    filename=glob.glob(filename)[0]
+    if update_npz or not os.path.isfile(filename):
         np.savez(filename,centroid,K)
     else:
         npdata = np.load(filename)
@@ -105,7 +107,7 @@ def nearest_neighbor(x,cents,th=None):
     dists=get_distance_score(x,cents)
     max_Score_idx=np.argmax(dists)
     max_Score=dists[max_Score_idx]
-    if th:
+    if np.all(th!=None):
         if max_Score<th[max_Score_idx]*0.8:#手动放宽范围
             max_Score_idx=5
     return max_Score_idx
@@ -114,8 +116,8 @@ def two_D_visualization(datas,labels,cents):
     print(data2d.shape)
     for k in range(max(labels+1)):
         idx=np.where(labels == k)[0]
-        plt.scatter(data2d[idx, 1], data2d[idx, 0],label=str(k),s=20)
-        plt.scatter(cents[k][1],cents[k][0],marker='+',s=30)
+        plt.scatter(data2d[idx, 1], data2d[idx, 0],label=str(k),s=40)
+        plt.scatter(cents[k][1],cents[k][0],marker='+',s=50)
 
 
 def get_nearest_neighbor_threshold(datas=None,cents=None,labels=None):
@@ -148,7 +150,8 @@ class Who_am_I(object):
     此类给ros使用，综合上面各个函数
     '''
     def __init__(self):
-        self.__cents,self.__K=save_centroid_npz()
+        self.__cents,self.__K=save_centroid_npz(None,None)
+        # print(self.__K)
         self.__get_x=get_x
         self.__down_Dimension=downDimension
         self.__th=get_nearest_neighbor_threshold(None,self.__K)
@@ -176,7 +179,8 @@ if __name__ == '__main__':
     print(datas.shape)
     # exit()
     centroid, labels, inertia = k_means(np.float32(datas), K,copy_x=False)
-    centroid, K=save_centroid_npz(centroid,K,False)
+    # 多试几次，肯定能有个好点初始值
+    centroid, K=save_centroid_npz(centroid,K,False,filename=workdir+str(K)+'means.npz')
 
     neighbor_threshold=get_nearest_neighbor_threshold(datas,centroid,labels)
     new_labels=[]

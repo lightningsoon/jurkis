@@ -2,6 +2,7 @@
 # -*- coding=utf-8 -*-
 import os
 # 帮助加载一下模型
+print(os.path.abspath('.'))
 def main():
     # 1.先计算旋转中心
     flag = os.system('rosrun jurvis find_arm_position.py')

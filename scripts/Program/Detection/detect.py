@@ -11,9 +11,9 @@ if tf.__version__ < '1.5.0':
 from utils import label_map_util
 import core
 # Path to frozen detection graph.
-PATH_TO_CKPT = os.path.join('/home/momo/catkin_ws/src/jurvis/scripts/Program/Detection/model', 'frozen_inference_graph.pb')
+PATH_TO_CKPT = os.path.join('/home/momo/Project/jurkis_ws/src/jurvis/scripts/Program/Detection/model', 'frozen_inference_graph.pb')
 # List of the strings that is used to add correct label for each box.
-PATH_TO_LABELS = os.path.join('/home/momo/catkin_ws/src/jurvis/scripts/Program/Detection/model/', 'mscoco_label_map.pbtxt')
+PATH_TO_LABELS = os.path.join('/home/momo/Project/jurkis_ws/src/jurvis/scripts/Program/Detection/model/', 'mscoco_label_map.pbtxt')
 # 类别数量
 NUM_CLASSES = 90
 

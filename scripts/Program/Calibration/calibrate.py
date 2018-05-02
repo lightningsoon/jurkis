@@ -206,7 +206,7 @@ class Sense_Self(object):
         if len(corners)==1:
             c_temp = np.reshape(corners[0], (1, -1, 1, 2)).astype(np.int32)# [1,4,1,2]
             cv2.polylines(frame, c_temp, True, (250, 0, 0), 2)
-            self.__x[:2] = tuple((corners[0][0][0].astype(int)+corners[0][0][3].astype(int))//2)#1,2两点之间
+            self.__x[:2] = tuple((corners[0][0][1].astype(int)+corners[0][0][2].astype(int))//2)#1,2两点之间
             frame = cv2.circle(frame,tuple(self.__x[:2]), 4, (0, 0, 250), 2)#2表示顺序
             # print('__x',self.__x)
             # TODO 深度值
@@ -266,7 +266,7 @@ class Sense_Self(object):
         #          os.getpid())
         while (np.all(self.frame_rgb == None) or np.all(self.frame_depth_rgb == None) or np.all(self.frame_depth_gray == None)):
             print('rgb:',self.frame_rgb,'d-rgb:',self.frame_depth_rgb,'d-gray',self.frame_depth_gray)
-            rospy.rostime.wallsleep(0.8)
+            ros_spinOnce()
             pass
 
 def main():
@@ -325,7 +325,7 @@ def ros_spinOnce():
     #给外部函数用的
     if rospy.is_shutdown():
         exit()
-    rospy.rostime.wallsleep(0.03)
+    rospy.rostime.wallsleep(0.09)
 
 
 
@@ -344,7 +344,7 @@ if __name__ == u'__main__':
         if rospy.is_shutdown():
             interrupt()
             exit()
-        rospy.rostime.wallsleep(0.03)
+        rospy.rostime.wallsleep(0.08)
     #
     mySense_Self = Sense_Self()
     myArmEye_collectingData = ArmEye_collectingData(openfile=True)

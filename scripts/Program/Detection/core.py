@@ -5,7 +5,7 @@ using opencv to implement visualization
 import cv2
 import numpy as np
 import logging
-from ..Outline import contour,cluster
+from Outline import contour,cluster
 
 
 # a=list(map
@@ -63,16 +63,18 @@ def master(image, num, boxs, classes, scores, max_boxes_to_draw=10, min_score_th
         cup_indices = np.argwhere(classes == 47)
         bowl_indices = np.argwhere(classes == 51)
         # 合并
-        indices1=np.append(cup_indices,bowl_indices)
+        indices1=np.append(cup_indices,bowl_indices).ravel()
         indices2=np.argwhere((scores>min_score_thresh)==True).ravel()
-        indices=set(indices1)&set(indices2)
-        #根据分值和类别得到索引
-        boxs=boxs[indices][:max_boxes_to_draw]
-        scores=scores[indices][:max_boxes_to_draw]
-        # 6、7 圈点框，找和画
-        what=mixFuc_crucial(image,boxs,scores,max_boxes_to_draw)
-    else:
-        what=(None,None),None
+        indices=np.intersect1d(indices1,indices2)
+        # print(indices,type(indices))
+        if len(indices)>0:
+            # 根据分值和类别得到索引
+            boxs=boxs[indices][:max_boxes_to_draw]
+            scores=scores[indices][:max_boxes_to_draw]
+            # 6、7 圈点框，找和画
+            what=mixFuc_crucial(image,boxs,scores,max_boxes_to_draw)
+            return what
+    what=(None,None),None
     return what
     pass
 
@@ -111,12 +113,14 @@ def mixFuc_crucial(image,boxs,scores,length):
         ##############
         y0, y1, x0, x1 = max(0, ymin - 5), min(480, ymax + 5), \
                          max(0, xmin - 5), min(640, xmax + 5)
-        img_raw_mini=img_raw[y0:y1, x0:x1]
+        img_raw_mini=img_raw[y0:y1, x0:x1,:]
         # 7.1 找+画 圈
-        image[y0:y1, x0:x1], circle_point = contour.circle(img_raw_mini,
-                                                           image[y0:y1, x0:x1])
+        # print(image,type(image),image.shape)
+        image[y0:y1, x0:x1,:], circle_point = contour.circle(img_raw_mini,
+                                                           image[y0:y1, x0:x1,:])
         #有圈
-        if circle_point:
+        # print("yes1")
+        if np.all(circle_point!=None):
             new_indices.append(i)#记录有圆圈点索引
             temp=myWhere_am_I.calculate_grasp_point(circle_point)#return第一个是点，第二个距离
             grasp_points.append(temp[0])#记录最近的点
@@ -125,6 +129,7 @@ def mixFuc_crucial(image,boxs,scores,length):
         rectangle(image,ymin, xmin, ymax, xmax,scores[i],color_map[i])
     # 看哪个圈的点适合抓取
     if len(new_indices) != 0:
+        # print("yes2")
         min_grasp_dist_index = np.argmin(grasp_dists).ravel()[0]
         # 7.2 查看当前框的种类
         temp_indc=new_indices[min_grasp_dist_index]

@@ -9,7 +9,7 @@ from time import sleep
 import rospy
 import cv2
 from sensor_msgs.msg import Image
-os.chdir('/home/momo/catkin_ws/src/jurvis/scripts/Program/')
+os.chdir('/home/momo/Project/jurkis_ws/src/jurvis/scripts/Program/')
 #
 from Calibration.calibrate import Communicate_with_SCM, Sense_Self, ros_spinOnce
 
@@ -42,7 +42,7 @@ def main1(COOR):
             rospy.signal_shutdown("User hit ESC key to quit.")
             cv2.destroyAllWindows()
             break
-
+myWAI=contour.Where_am_I()
 def main2(COOR):
     print('main2 start')
     myCS.home_arm()
@@ -60,10 +60,11 @@ def main2(COOR):
     if L>=9:
         coor = [COOR[1], COOR[L // 2], COOR[-1]]
         points = list(map(contour.Point, coor))
-        final_cen = contour.Where_am_I.calculate_circle_center(*points)
+        final_cen = myWAI.calculate_circle_center(points)
         final_cen=list(map(int,final_cen))
         print(final_cen, 'saved in', os.path.abspath('./'))
         with  open('arm_center.json','w') as fp:
+            # print("保存中心")
             json.dump(final_cen, fp)
     else:
         print('数据不足，重新设置位置')

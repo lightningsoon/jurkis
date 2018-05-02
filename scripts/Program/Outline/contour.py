@@ -45,7 +45,7 @@ def circle(img_bgr,circle_point):
             if 0.93 < S1 / S2 < 1.07 and 0.9 > S2 / square > 0.3:
                 return ellipse
     # cv2.imshow('tmp', img_bin)
-    return None
+    return [None]
     pass
 
 
@@ -62,7 +62,7 @@ class Point(object):
     pass
 class Where_am_I(object):
     def __init__(self):
-        self.filename = 'arm_center.json'
+        self.filename = '/home/momo/Project/jurkis_ws/src/jurvis/scripts/Program/arm_center.json'
         self.arm_center=self.read_self_arm_center()
         self.generate_new_background()
     def read_self_arm_center(self):
@@ -87,7 +87,7 @@ class Where_am_I(object):
         import json
         with open(self.filename, 'w') as f:
             json.dump({'x':data['x'],'y':data['y']},f)
-    def calculate_circle_center(self,pt1,pt2,pt3):
+    def calculate_circle_center(self,pts):
         '''
         目前只支持传入三个点求圆心
         :param pt1: 三个点
@@ -96,6 +96,8 @@ class Where_am_I(object):
         :return: 圆心 x,y
         '''
         import math
+        assert len(pts)==3
+        pt1, pt2, pt3=pts
         cp = Point()
         A1 = pt1.x - pt2.x
         B1 = pt1.y - pt2.y

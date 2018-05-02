@@ -22,9 +22,10 @@ fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
 class Worker(Sense_Self, Pinocchio):
     def __init__(self):
-        super(Worker, self).__init__()
+        for i in range(len(self.__class__.mro())):
+            super(Worker, self).__init__()
         # TODO 应该要给True
-        self.wait_or_act = False  # True 等待参数，False正在行动
+        self.wait_or_act = True  # True 等待参数，False正在行动
         self.grasp_point=[None]*3
         self.target = None
         self.kind = None  # 种类名字
@@ -38,6 +39,7 @@ class Worker(Sense_Self, Pinocchio):
             img = cb.imgmsg_to_cv2(img, 'bgr8')
         except CvBridgeError, e:
             print e
+        # print(self.frame_rgb)
         self.frame_rgb = np.array(img, dtype=np.uint8)
 
     def working(self):
@@ -104,12 +106,13 @@ def clean():
 
 def main():
     print('start')
+    myWorker.waitRosMsg()
     while True:
         # 4 获取图像
         ros_spinOnce()
         # 5 处理数据
         res = myWorker.working()
-        cv2.imshow('res', res)
+        # cv2.imshow('res', res)
         myWorker.frame_rgb=myWaI.draw_grasp_point_and_arm_center(myWorker.frame_rgb,myWorker.grasp_point)
         cv2.imshow('rgb', myWorker.frame_rgb)
         # cv2.imshow('depth_gray', mySS.frame_depth_gray)
@@ -165,6 +168,7 @@ if __name__ == '__main__':
     depth_sub = rospy.Subscriber("/camera/depth/image_rect_raw", Image, myWorker.convert_Depth, buff_size=2097152)
     try:
         main()
-    except KeyboardInterrupt:
+    except :
         print 'end'
         cv2.destroyAllWindows()
+        exit()

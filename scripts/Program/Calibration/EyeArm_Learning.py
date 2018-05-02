@@ -11,30 +11,34 @@ from sklearn.linear_model import LinearRegression
 # print(len(list(a.para)))
 class Pinocchio(object):
     def __init__(self):
-        self.__reg_type = 'P'  # 回归器类型
-        self.__first_predict=True
-        self.__poly = preprocessing.PolynomialFeatures(degree=16)
+        self._reg_type = 'P'  # 回归器类型
+        self._first_predict=True
+        self._poly = preprocessing.PolynomialFeatures(degree=16)
+        self.model_name='/home/momo/Project/jurkis_ws/src/jurvis/scripts/Program/Calibration/Model/Poly/model.m'
+        if self._reg_type == 'P' and self._first_predict:
+            self._model = self._restoreModel()
+            self._first_predict=False
     def train(self):
         self.readData()
         X,Y=self.X,self.Y
         # Training neural network
-        # if self.__reg_type == 'N':
+        # if self._reg_type == 'N':
         #     net = rg.Net()
         #     net.train(X, Y, learnrate=0.001, max_iter=10000)
 
         # Training polynomial regression model
-        if self.__reg_type == 'P':
+        if self._reg_type == 'P':
             
-            X = self.__poly.fit_transform(X)
+            X = self._poly.fit_transform(X)
             model = LinearRegression()
             model.fit(X, Y)
             self.__dumpModel__(model)
-            self.__model=model
+            self._model=model
             self.test(X, Y)
             return 1
 
         # Training SVM model
-        # if self.__reg_type == 'S':
+        # if self._reg_type == 'S':
         #     svm = rg.SVM()
         #     svm.train(X, Y, kernel='linear')
         pass
@@ -48,20 +52,20 @@ class Pinocchio(object):
     def test(self,x,y):
         #x,y:list n*d
         x,y=np.array(x),np.array(y)
-        print ("score:", self.__model.score(x, y))
+        print ("score:", self._model.score(x, y))
         pass
 
     def __dumpModel__(self, model):
-        if self.__reg_type == 'P':
-            joblib.dump(model, './Model/Poly/model.m')
+        if self._reg_type == 'P':
+            joblib.dump(model, self.model_name)
         return 1
         pass
 
-    def __restoreModel__(self):
+    def _restoreModel(self):
         try:
-            model = joblib.load('./Model/Poly/model.m')
+            model = joblib.load(self.model_name)
         except:
-            print("Import model error!")
+            print("Import model error! NO %s" % (self.model_name))
             exit()
         return model
         pass
@@ -70,24 +74,22 @@ class Pinocchio(object):
         # X_test：int[3] (3,)
         # Y:int[4] (4,)
         # Using neural network model
-        # if self.__reg_type == 'N':
+        # if self._reg_type == 'N':
         #     net = rg.Net()
         #     return net.predict(X_test)
 
         # Using polynomial regression model
-        if self.__reg_type == 'P' and self.__first_predict:
-            self.__model = self.__restoreModel__()
-            self.__first_predict=False
+        
         X_test=np.reshape(X_test,(1,-1))
-        X_test = self.__poly.fit_transform(X_test)
-        if self.__model != 0:
-            Y = self.__model.predict(X_test)
+        X_test = self._poly.fit_transform(X_test)
+        if self._model != 0:
+            Y = self._model.predict(X_test)
             Y = list(map(int,Y[0]))
             return Y
         return 0
 
         # Using SVM
-        # if self.__reg_type == 'S':
+        # if self._reg_type == 'S':
         #     svm = rg.SVM()
         #     return svm.predict(X_test)
 
