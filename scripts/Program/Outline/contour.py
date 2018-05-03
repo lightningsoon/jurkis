@@ -14,20 +14,19 @@ width,height,channel=640,480,3
 # cv2.imwrite('./bgr.jpg',img_bgr[160:305,245:385])
 
 # 二值掩膜
-size = 3
+size = 2
 kernel = np.ones((size, size), dtype=np.uint8)
 
 
 def binaryMask(image_0):
-    if image_0.shape[2]==3:
+    if len(image_0.shape)==3:
         gray = cv2.cvtColor(image_0, cv2.COLOR_BGR2GRAY)
     else:
         gray=image_0
-    gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
-    blur = cv2.GaussianBlur(gray, (5, 5), 2)  # 高斯滤波
+    blur = cv2.GaussianBlur(gray, (5, 5), 0)  # 高斯滤波
     # blur = cv2.bilateralFilter(gray, 9, 75, 75)  # 双边滤波
     res = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 0)
-    res = cv2.morphologyEx(res, cv2.MORPH_CLOSE, kernel)
+    # res = cv2.morphologyEx(res, cv2.MORPH_CLOSE, kernel)
     return res
 
 
@@ -46,7 +45,7 @@ def circle(img_bgr,img_4_draw):
                 continue
             S1 = cv2.contourArea(cnt)
             S2 = math.pi * ellipse[1][0] * ellipse[1][1] / 4
-            if 0.93 < S1 / S2 < 1.07 and 0.9 > S2 / square > 0.3:
+            if 0.93 < S1 / S2 < 1.07 and 0.9 > S2 / square > 0.25:
                 img_4_draw=cv2.ellipse(img_4_draw,ellipse,color=(230,0,0),thickness=2)
                 return img_4_draw,cnt
     # cv2.imshow('tmp', img_bin)

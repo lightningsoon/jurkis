@@ -52,8 +52,8 @@ def main1():
             myCS.home_arm()
             break
         elif flag==32:
-            print("save a jpg")
-            cv2.imwrite(str(k)+".jpg",mySS.frame_depth_gray)
+            print("save a img")
+            cv2.imwrite(str(k)+".png",mySS.frame_depth_gray)
             k+=1
 
 def main2():

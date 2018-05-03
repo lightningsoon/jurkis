@@ -198,7 +198,7 @@ class Sense_Self(object):
         :param frame:
         :return:
         '''
-        # TODO 二维码放正面，代码改成中点 （未完成）
+        # 二维码
         corners, ids, rejectedImgPoints = aruco.detectMarkers(frame, self.__marker_dict)
         # corner =[[左上，右上，右下，左下]]
 
