@@ -2,7 +2,7 @@
 # -*- coding=utf-8 -*-
 
 import cv2
-from calibrate import Sense_Self,interrupt,ros_spinOnce
+from calibrate import Sense_Self,ros_spinOnce
 import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError

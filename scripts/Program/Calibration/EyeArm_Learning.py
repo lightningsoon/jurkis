@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.externals import joblib
 from sklearn import preprocessing
 from sklearn.linear_model import LinearRegression
-
+import random
 
 # from calibrate import ArmEye_collectingData
 # a=ArmEye_collectingData()
@@ -13,14 +13,20 @@ class Pinocchio(object):
     def __init__(self):
         self._reg_type = 'P'  # 回归器类型
         self._first_predict=True
-        self._poly = preprocessing.PolynomialFeatures(degree=16)
-        self.model_name='/home/momo/Project/jurkis_ws/src/jurvis/scripts/Program/Calibration/Model/Poly/model.m'
+        self.__poly = preprocessing.PolynomialFeatures(degree=4)
+        self.model_name='/home/momo/Project/jurkis_ws/src/jurkis/scripts/Program/Calibration/Model/Poly/model.m'
         if self._reg_type == 'P' and self._first_predict:
             self._model = self._restoreModel()
             self._first_predict=False
+        super(Pinocchio,self).__init__()
     def train(self):
         self.readData()
-        X,Y=self.X,self.Y
+        X,Y=np.array(self.X),np.array(self.Y)
+        L=np.arange(len(X))
+        random.shuffle(L)
+        X,Y=X[L],Y[L]
+        # XY=np.array(zip(self.X,self.Y))
+        # random.shuffle(XY)
         # Training neural network
         # if self._reg_type == 'N':
         #     net = rg.Net()
@@ -29,7 +35,7 @@ class Pinocchio(object):
         # Training polynomial regression model
         if self._reg_type == 'P':
             
-            X = self._poly.fit_transform(X)
+            X = self.__poly.fit_transform(X)
             model = LinearRegression()
             model.fit(X, Y)
             self.__dumpModel__(model)
@@ -81,7 +87,7 @@ class Pinocchio(object):
         # Using polynomial regression model
         
         X_test=np.reshape(X_test,(1,-1))
-        X_test = self._poly.fit_transform(X_test)
+        X_test = self.__poly.fit_transform(X_test)
         if self._model != 0:
             Y = self._model.predict(X_test)
             Y = list(map(int,Y[0]))

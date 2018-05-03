@@ -100,25 +100,31 @@ def main():
 # 别忘记配置 下面是给ros用的
 def properity(height=480,width=640):
     core.constant4ros(category_index,height,width)
-def minor(frame):
+def minor(frame,signal):
     # minor是main的青春版
     '''
     识别
     :param frame:
     :return:
     '''
+    if signal==True:
     # 5 目标检测
-    output_dict = inference(frame)
-    # Visualization of the results of a detection.
-    frame,GraspPoint2D,difference=core.master(
-        frame,
-        output_dict['num_detections'],
-        output_dict['detection_boxes'],
-        output_dict['detection_classes'],
-        output_dict['detection_scores'],
-        max_boxes_to_draw=8)
+        output_dict = inference(frame)
+        # Visualization of the results of a detection.
+        frame,GraspPoint2D,difference=core.master(
+            frame,
+            output_dict['num_detections'],
+            output_dict['detection_boxes'],
+            output_dict['detection_classes'],
+            output_dict['detection_scores'],
+            max_boxes_to_draw=8)
+        # print(GraspPoint2D,"xuyao")
     # print(output_dict)
     # print("gg4","GP",GraspPoint2D,"diff",difference)
+    else:
+        frame, GraspPoint2D, difference = core.master(
+            frame,0)
+        # print("buyong")
     return frame,GraspPoint2D,difference
 
 if __name__ == '__main__':

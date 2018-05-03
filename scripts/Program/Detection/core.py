@@ -12,7 +12,7 @@ from Outline import contour,cluster
 #        (tuple,np.random.randint(0,255,(100,3))))
 # for i in range(25):
 #     print('%s, %s, %s, %s,' % (a[i*4],a[i*4+1],a[i*4+2],a[i*4+3]))
-color_map = [(136, 230, 224), (74, 123, 60), (1, 112, 192), (122, 103, 253),
+color_map = [(136, 80, 224), (74, 123, 60), (1, 112, 192), (122, 103, 253),
                  (20, 242, 6), (247, 28, 99), (161, 91, 62), (85, 78, 178),
                  (63, 46, 225), (12, 141, 224), (115, 59, 49), (250, 207, 28),
                  (100, 127, 246), (161, 239, 82), (189, 98, 219), (78, 139, 192),
@@ -39,23 +39,31 @@ color_map = [(136, 230, 224), (74, 123, 60), (1, 112, 192), (122, 103, 253),
                  (187, 173, 26), (208, 79, 215), (92, 34, 138), (107, 230, 217)]  # 100个
 
 def constant4ros(category_index, h=480, w=640):
-    global height, width, color_map, kind_name,j,reference_point
+    global height, width, color_map, kind_name,j,reference_point,reachable_range
     height, width = h, w
     kind_name=category_index
     j = 0#截图计数
     reference_point = width // 2, height
+    reachable_range=((120,150),(500,380))#(x0,y0),(x1,y1)
+
 
 
 def constant(image, category_index, cls_num=None):
-    global height, width, color_map, kind_name,reference_point
+    global height, width, color_map, kind_name,reference_point,reachable_range
     kind_name = category_index
     # print(kind_name)
     height, width, _ = image.shape
     reference_point = width // 2, height
+    # TODO 3 可抓取范围的读取
+    # 在确定圆心时就可以知道
+    # 本来应该读取文件，现在手动开车
+    reachable_range=((180,250),(440,480))#(x0,y0),(x1,y1)
+    # 最好把这个框画起来
+    pass
 
 
 
-def master(image, num, boxs, classes, scores, max_boxes_to_draw=10, min_score_thresh=.5):
+def master(image, num, boxs=None, classes=None, scores=None, max_boxes_to_draw=10, min_score_thresh=.5):
     # 5.1 数据整理
     global height, width, color_map, kind_name
     # 47cup,50spoon,51bowl
@@ -76,9 +84,19 @@ def master(image, num, boxs, classes, scores, max_boxes_to_draw=10, min_score_th
             # 6、7 圈点框，找和画
             image,what0,what1=mixFuc_crucial(image,boxs,scores,len(boxs))
             # print("gg12")
+            # 画个可以抓取的框
+            image = cv2.rectangle(image, reachable_range[0], reachable_range[1],
+                                  color=color_map[8],
+                                  thickness=2,
+                                  lineType=cv2.LINE_AA)
             result=[image,what0,what1]
             # print("gg3",result[1:],"indices",indices)
             return result
+    # 画个可以抓取的框
+    image = cv2.rectangle(image, reachable_range[0], reachable_range[1],
+                          color=color_map[8],
+                          thickness=2,
+                          lineType=cv2.LINE_AA)
     result=[image,(None,None),None]
     return result
     pass
@@ -106,12 +124,12 @@ def mixFuc_crucial(image,boxs,scores,length):
     :return:可能是接下来要抓取点（二维），也可能没有可以抓的点
     '''
 
-    global height, width,j,color_map
-    try:
-        height,width
-    except:
-        print("忘记配置ros了 constant4ros")
-        exit()
+    global height, width,j,color_map,reachable_range
+    # try:
+    #     height,width
+    # except:
+    #     print("忘记配置ros了 constant4ros")
+    #     exit()
     img_raw = image.copy()
     grasp_points,new_indices,grasp_dists=[],[],[]#抓取点，有圈的索引，抓取距离
     # print(boxs,scores,length)
@@ -119,19 +137,26 @@ def mixFuc_crucial(image,boxs,scores,length):
         ##############
         ymin, xmin, ymax, xmax = list(map(int, (boxs[i][0] * height, boxs[i][1] * width,
                                                 boxs[i][2] * height, boxs[i][3] * width)))
+        # 判断范围
+
         # print("第%d个，加油！" % (i))
         ##############
         y0, y1, x0, x1 = max(0, ymin - 5), min(480, ymax + 5), \
                          max(0, xmin - 5), min(640, xmax + 5)
+        if x0<reachable_range[0][0] or y0<reachable_range[0][1] or \
+            x1>reachable_range[1][0] or y1 > reachable_range[1][0]:
+            continue
         img_raw_mini=img_raw[y0:y1, x0:x1]
         # 7.1 找+画 圈
         # print("circle",type(image),image.shape)
         image[y0:y1, x0:x1], circle_point = contour.circle(img_raw_mini,image[y0:y1, x0:x1])
         #有圈
-        # print("yes1",circle_point)
-        if circle_point != 0:
+        # print("yes1",circle_point,circle_point.shape)
+        if np.any(circle_point != -1):
             # print("gg")
             new_indices.append(i)#记录有圆圈点索引
+
+            circle_point=circle_point+np.array([x0,y0])# 出来是个小图 -> 抓取点修正
             temp=myWhere_am_I.calculate_grasp_point(circle_point)#return第一个是点，第二个距离
             grasp_points.append(temp[0])#记录最近的点
             grasp_dists.append(temp[1])
@@ -155,7 +180,8 @@ def mixFuc_crucial(image,boxs,scores,length):
         temp_grasp_point=(None,None)
         temp_kind=None
     # print("gg2",temp_grasp_point,"kind",temp_kind)
-    return image,temp_grasp_point,temp_kind
+
+    return (image,temp_grasp_point,temp_kind)
 
 def rectangle(image,ymin, xmin, ymax, xmax,score_i,color_map_i):
     # 画框
@@ -164,7 +190,8 @@ def rectangle(image,ymin, xmin, ymax, xmax,score_i,color_map_i):
                   (xmax, ymax),
                   color_map_i, 3, cv2.LINE_AA)
     cv2.putText(image, str(score_i), (xmin, ymin),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, 8)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255),
+                1, cv2.LINE_8)
     return image
 
 '''

@@ -85,12 +85,13 @@ class Communicate_with_SCM(object):
             something = something + [time]
         something = list(map(str, something))
         something = ','.join(something)
-        logger.info('send %s to SCP' % (something))
+        # logger.info('send %s to SCP' % (something))
+        print('send %s to SCP' % (something))
         self.ser.write(something + '!')
 
     def readStatu(self):
         time.sleep(2)
-        for i in range(5):
+        for i in range(3):
             sign = self.ser.readline()
             if sign == '1\r\n':
                 return True
@@ -98,6 +99,7 @@ class Communicate_with_SCM(object):
                 print('SCP reported ??? something : %s' % sign)
         logger.error('timeout with SCP in readStatu')
         self.closeSerial()
+        print("子程序程序退出了，关了吧")
         exit()
 
     def home_arm(self):
@@ -114,7 +116,6 @@ class ArmEye_collectingData(object):
     '''
 
     def __init__(self,openfile=False):
-        self.__point_number=3#点数量
         if openfile:
             self.openCSV()
         self.inform()
@@ -128,8 +129,8 @@ class ArmEye_collectingData(object):
         self.__count = 0
 
     def openCSV(self):
-        self.__f_para = open('/home/momo/Project/jurkis_ws/src/jurkis/scripts/Program/Calibration/data.csv', 'a')  # 数据
-        self.__f_coor = open('/home/momo/Project/jurkis_ws/src/jurkis/scripts/Program/Calibration/label.csv', 'a')  # 标签
+        self.__f_coor = open('/home/momo/Project/jurkis_ws/src/jurkis/scripts/Program/Calibration/data.csv', 'a')  # 数据
+        self.__f_para = open('/home/momo/Project/jurkis_ws/src/jurkis/scripts/Program/Calibration/label.csv', 'a')  # 标签
         self.writer_para = csv.writer(self.__f_para)
         self.writer_coor = csv.writer(self.__f_coor)
 
@@ -141,6 +142,7 @@ class ArmEye_collectingData(object):
         # 保存数据到文件，并隔几次保存一下
         self.__count += 1
         print('finished %d / %d all \n %s,%s' % (self.__count, self.__N, str(parameter), str(coordination)))
+        print('')
         self.writer_para.writerow(parameter)
         self.writer_coor.writerow(coordination)
         if self.__count % 20 == 0:
@@ -150,15 +152,16 @@ class ArmEye_collectingData(object):
 
     def generatePara(self):
         # 电机运动范围
-        left,right,num=1360,640,self.__point_number#a[5]
-        lr=(left,right,(right-left)//num)
-        a = [None] * 6
+        left,right,num=1460,940,4#a[5]
+        lr=(left,right,(right-left)//10)
+        a = [None] * 7
+        a[7]=500
         # TODO 范围有待确定（未完成）
         a[0] = 1500# 爪子抓紧
         a[1] = 600# 爪子摆正
         R4=(1750,1950,(1950-1750)//num)# (1900,2170) a[4]
         R3=(1500,1200,-(1500-1200)//num) # (1000,1300) a[3]
-        R2=(1250,1800,(1800-1250)//num)# (1200,1900) a[2]
+        R2=(1200,1150,(1800-1250)//num)# (1200,1900) a[2]
         for a[5] in range(*lr):
             for a[2] in range(*R2):
                 for a[3] in range(*R3):
@@ -180,13 +183,14 @@ class Sense_Self(object):
         self.__marker_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_50)
         # 显示
         self.frame_rgb = None
-        self.__frame_depth_row = None
+        self._frame_depth_raw = None
         self.__depth_array = np.ones((480, 640, 3), dtype=np.uint8)
         self.__depth_array[:, :, 1] = self.__depth_array[:, :, 1] * 255
         self.__depth_array[:, :, 2] = self.__depth_array[:, :, 2] * 180
         self.frame_depth_gray = None
         self.frame_depth_rgb = None
         self.debug_img=None
+        super(Sense_Self,self).__init__()
         pass
 
     def processIMG(self, frame):
@@ -227,7 +231,12 @@ class Sense_Self(object):
 
 
     def getDeepth(self):
-        return int(self.__frame_depth_row[self.__x[1],self.__x[0]])
+        '''
+        二维码点深度
+        :return:
+        '''
+        # print(self._frame_depth_raw.shape,self._frame_depth_raw[self.__x[1],self.__x[0]])
+        return int(self._frame_depth_raw[self.__x[1],self.__x[0]])
         pass
 
     # TODO ROS订阅
@@ -250,7 +259,7 @@ class Sense_Self(object):
             print e
             exit()
         # print(depth_image)
-        self.__frame_depth_row = depth_image
+        self._frame_depth_raw = depth_image
         # TODO 解算距离-ros_cv2__bridge
         self.__depth_array[:, :, 0] = np.array(depth_image * 180 / 10000, dtype=np.uint8)  # hsv
         self.frame_depth_rgb = cv2.cvtColor(self.__depth_array, cv2.COLOR_HSV2BGR)
@@ -314,11 +323,13 @@ def assist():
     print('!!!!!!!!!!!!!!!exhaust parameters')
     time.sleep(2)
     myCommunicate_with_SCM.home_arm()
+    time.sleep(3)
+    exit()
 
 
 def interrupt():
     cv2.destroyAllWindows()
-    Communicate_with_SCM.closeSerial()
+    myCommunicate_with_SCM.closeSerial()
     myArmEye_collectingData.saveCSV()
 
 def ros_spinOnce():
@@ -340,6 +351,7 @@ def ros_spinOnce():
 #     return decorator
 q = Queue(1)
 if __name__ == u'__main__':
+    # 自我学习的程序
     def ros_spinOnce():
         if rospy.is_shutdown():
             interrupt()
@@ -348,20 +360,17 @@ if __name__ == u'__main__':
     #
     mySense_Self = Sense_Self()
     myArmEye_collectingData = ArmEye_collectingData(openfile=True)
-    myCommunicate_with_SCM = Communicate_with_SCM(True)
+    myCommunicate_with_SCM = Communicate_with_SCM()
     #
     node_name = 'calibrate_node'
     rospy.init_node(node_name)
-    rospy.on_shutdown(interrupt)
+    # rospy.on_shutdown(interrupt)
     image_sub = rospy.Subscriber("/camera/color/image_raw", Image, mySense_Self.convert_RGB, buff_size=2097152)  # 2MB
     depth_sub = rospy.Subscriber("/camera/depth/image_rect_raw", Image, mySense_Self.convert_Depth, buff_size=2097152)
     rospy.loginfo("Waiting for image topics...")
-    try:
-        main()
-        # rospy.spin()
-    except KeyboardInterrupt:
-        interrupt()
-    pass
+
+    main()
+    # rospy.spin()
 
 '''
     t=geneCoor()
