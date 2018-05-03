@@ -46,7 +46,7 @@ def circle(img_bgr,img_4_draw):
             S1 = cv2.contourArea(cnt)
             S2 = math.pi * ellipse[1][0] * ellipse[1][1] / 4
             if 0.93 < S1 / S2 < 1.07 and 0.9 > S2 / square > 0.25:
-                img_4_draw=cv2.ellipse(img_4_draw,ellipse,color=(230,0,0),thickness=2)
+                img_4_draw=cv2.ellipse(img_4_draw,ellipse,color=(130, 80,0),thickness=2)
                 return img_4_draw,cnt
     # cv2.imshow('tmp', img_bin)
     return img_4_draw,0
