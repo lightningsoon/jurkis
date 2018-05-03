@@ -128,8 +128,8 @@ class ArmEye_collectingData(object):
         self.__count = 0
 
     def openCSV(self):
-        self.__f_para = open('/home/momo/catkin_ws/src/jurvis/scripts/Program/Calibration/label.csv', 'a')  # 数据
-        self.__f_coor = open('/home/momo/catkin_ws/src/jurvis/scripts/Program/Calibration/data.csv', 'a')  # 标签
+        self.__f_para = open('/home/momo/Project/jurkis_ws/src/jurkis/scripts/Program/Calibration/data.csv', 'a')  # 数据
+        self.__f_coor = open('/home/momo/Project/jurkis_ws/src/jurkis/scripts/Program/Calibration/label.csv', 'a')  # 标签
         self.writer_para = csv.writer(self.__f_para)
         self.writer_coor = csv.writer(self.__f_coor)
 

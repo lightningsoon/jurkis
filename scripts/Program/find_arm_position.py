@@ -9,7 +9,7 @@ from time import sleep
 import rospy
 import cv2
 from sensor_msgs.msg import Image
-os.chdir('/home/momo/Project/jurkis_ws/src/jurvis/scripts/Program/')
+os.chdir('/home/momo/Project/jurkis_ws/src/jurkis/scripts/Program/')
 #
 from Calibration.calibrate import Communicate_with_SCM, Sense_Self, ros_spinOnce
 

@@ -66,7 +66,7 @@ class Point(object):
     pass
 class Where_am_I(object):
     def __init__(self):
-        self.filename = '/home/momo/Project/jurkis_ws/src/jurvis/scripts/Program/arm_center.json'
+        self.filename = '/home/momo/Project/jurkis_ws/src/jurkis/scripts/Program/arm_center.json'
         self.arm_center=self.read_self_arm_center()
         self.generate_new_background()
     def read_self_arm_center(self):

@@ -157,7 +157,7 @@ if __name__ == '__main__':
     mythread.start()
     # 3.rosnode
     # 3 开始工作，订阅和初始化一些参数
-    node_name = 'jurvis_worker'
+    node_name = 'jurkis_worker'
     rospy.init_node(node_name)
     rospy.on_shutdown(clean)
     properity(480, 640)

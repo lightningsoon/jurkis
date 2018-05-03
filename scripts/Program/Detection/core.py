@@ -200,7 +200,7 @@ def draw1Pic(num, indices, scores, min_score_thresh, boxs, image, class_index):
         # 问题：可能会截图到上一张被覆盖的文字或框
         # 方案：1复制一张图像，使用原始图；2使用该功能关闭另外两个；
         # if j%10==0:
-        #     cv2.imwrite('/home/momo/catkin_ws/src/jurvis/scripts/Program/Outline/data/'+
+        #     cv2.imwrite('/home/momo/catkin_ws/src/jurkis/scripts/Program/Outline/data/'+
         #                 str(j//10)+'.png',image[y0:y1,x0:x1])
         # j += 1
 

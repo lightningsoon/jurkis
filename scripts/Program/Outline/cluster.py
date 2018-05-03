@@ -17,7 +17,7 @@ import cv2
 import os
 import time
 import json
-workdir='/home/momo/Project/jurkis_ws/src/jurvis/scripts/Program/Outline/parameters/'
+workdir='/home/momo/Project/jurkis_ws/src/jurkis/scripts/Program/Outline/parameters/'
 def restore_model():
     global top_model
     top_model = load_model(workdir+'mobilenet.h5', custom_objects={
@@ -25,7 +25,7 @@ def restore_model():
                 'DepthwiseConv2D': mobilenet.DepthwiseConv2D})
     print('load cluster model')
 def load_data():
-    imlist = glob.glob('/home/momo/Project/jurkis_ws/src/jurvis/scripts/Program/Outline/data/*.png')[:]
+    imlist = glob.glob('/home/momo/Project/jurkis_ws/src/jurkis/scripts/Program/Outline/data/*.png')[:]
     imgs=np.array(list(image.img_to_array(image.load_img(i,target_size=(224,224))) for i in imlist))
     #导入的图像已经成float32，不清楚
     imnbr = len(imlist)

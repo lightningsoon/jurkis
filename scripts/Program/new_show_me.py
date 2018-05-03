@@ -14,7 +14,7 @@ import rospy
 import cv2
 from sensor_msgs.msg import Image
 from Detection import detect
-os.chdir('/home/momo/Project/jurkis_ws/src/jurvis/scripts/Program/')
+os.chdir('/home/momo/Project/jurkis_ws/src/jurkis/scripts/Program/')
 #
 from Calibration.calibrate import Communicate_with_SCM, Sense_Self, ros_spinOnce,ArmEye_collectingData
 
@@ -44,7 +44,7 @@ def main1():
         # print("gg5")
         # mySS.frame_rgb=myWaI.draw_grasp_point_and_arm_center(mySS.frame_rgb,mySS.coor[:2])
         # print("gg6")
-        # cv2.imshow('chendushow', mySS.frame_rgb)
+        cv2.imshow('chendushow', mySS.frame_rgb)
         flag = cv2.waitKey(30) & 0xFF
         if flag == 27:
             rospy.signal_shutdown("User hit ESC key to quit.")
@@ -53,7 +53,7 @@ def main1():
             break
         elif flag==32:
             print("save a img")
-            cv2.imwrite(str(k)+".png",mySS.frame_depth_gray)
+            cv2.imwrite(str(k)+".jpg",mySS.frame_depth_gray)
             k+=1
 
 def main2():
