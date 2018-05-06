@@ -6,11 +6,14 @@ import numpy as np
 marker_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_50)
 
 
-def geneAruco():
+def geneAruco(k=None):
     A4 = (2100,2940)
     A4paper=np.ones(A4,np.uint8)*255
     x,y=10,10
     for i in range(50):
+        if k:
+            i=k
+            # print(k)
         size=10*i+80
         img=aruco.drawMarker(marker_dict,i,size)
         y0,x0=y+size,x+size
@@ -21,6 +24,10 @@ def geneAruco():
         if y0 > A4[0]:
             break
         try:
+            if k:
+                A4paper[(A4[0]/2)-(size/2):A4[0]/2+(size/2),(A4[1]/2)-(size/2):(A4[1]/2)+(size/2)]=img
+                cv2.imwrite('aruco%d.png' % (k), A4paper)
+                exit()
             A4paper[y:y0,x:x0]=img
         except ValueError:
             print(y,y0,i,size,x,x0)
@@ -32,10 +39,11 @@ def geneAruco():
         flag=cv2.waitKey(10)
         if flag==27:
             break
+
     print(i)
     cv2.imwrite('aruco.png',A4paper)
 
-# geneAruco()
+geneAruco(21)
 def detectMarker():
     cap=cv2.VideoCapture(1)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH,640)
@@ -54,4 +62,4 @@ def detectMarker():
 # # img=cv2.resize(img,(0,0),None,0.3,0.3,cv2.INTER_LINEAR)
 # cv2.imshow('??',img)
 # cv2.waitKey(0)
-detectMarker()
+# detectMarker()

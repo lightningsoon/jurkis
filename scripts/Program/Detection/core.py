@@ -57,7 +57,7 @@ def constant(image, category_index, cls_num=None):
     # TODO 3 可抓取范围的读取
     # 在确定圆心时就可以知道
     # 本来应该读取文件，现在手动开车
-    reachable_range=((180,250),(440,480))#(x0,y0),(x1,y1)
+    reachable_range=((0,0),(width,height))#(x0,y0),(x1,y1)
     # 最好把这个框画起来
     pass
 
@@ -190,7 +190,7 @@ def rectangle(image,ymin, xmin, ymax, xmax,score_i,color_map_i):
                   (xmax, ymax),
                   color_map_i, 3, cv2.LINE_AA)
     cv2.putText(image, str(score_i), (xmin, ymin),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255),
                 1, cv2.LINE_8)
     return image
 

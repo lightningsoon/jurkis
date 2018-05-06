@@ -90,7 +90,7 @@ class Communicate_with_SCM(object):
         self.ser.write(something + '!')
 
     def readStatu(self):
-        time.sleep(2)
+        time.sleep(0.05)
         for i in range(3):
             sign = self.ser.readline()
             if sign == '1\r\n':
@@ -103,7 +103,7 @@ class Communicate_with_SCM(object):
         exit()
 
     def home_arm(self):
-        # 归位
+        # 归位 1468,600,1300,1000,1550,500
         logger.info('homing')
         self.ser.write('homing' + '!')
 
@@ -155,7 +155,7 @@ class ArmEye_collectingData(object):
         left,right,num=1460,940,4#a[5]
         lr=(left,right,(right-left)//10)
         a = [None] * 7
-        a[7]=500
+        a[6]=500
         # TODO 范围有待确定（未完成）
         a[0] = 1500# 爪子抓紧
         a[1] = 600# 爪子摆正

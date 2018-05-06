@@ -33,7 +33,7 @@ class Worker(Sense_Self, Pinocchio):
         self.kind = None  # 种类名字
         self.num = [0]*5  # 每种数量
         # TODO 填写可以摆放的位置
-        self.__setPosi = [850,750,650,550,500]
+        self.__setPo5si = [850,750,650,550,500]
         # exit()
         pass
 
@@ -77,7 +77,7 @@ class Worker(Sense_Self, Pinocchio):
         # 统计一下数量情况
         # print(self.kind)
         # 修正
-        target[2]=target[2]-0#越小越高
+        target[2]=target[2]+100#越小越高
         if target[1]<400:
             target[1]=target[1]+1000
         elif target[1]<900:
@@ -85,7 +85,7 @@ class Worker(Sense_Self, Pinocchio):
         elif target[1]<1100:
             target[1]=int(target[1]*1.12)
         target[0]+=0#越大越高
-        if self.num[self.kind]<5:
+        if self.num[self.kind]<3:
             elevate=1900-self.num[self.kind]*100
             self.num[self.kind]+=1
             # TODO 以后依靠识别，配合有监督示范

@@ -64,13 +64,17 @@ def inference(image):
     output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
     output_dict['detection_scores'] = output_dict['detection_scores'][0]
     return output_dict
-
+from time import sleep
 def main():
-    cap = cv2.VideoCapture(-1)
+    cap = cv2.VideoCapture(1)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT,480)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH,640)
-
-    ret, frame = cap.read()
+    sleep(2)
+    while True:
+        ret, frame = cap.read()
+        if frame:
+            break
+    frame=np.array(frame * 256 / 10000, dtype=np.uint8)
 
     core.constant(frame,category_index)
     while True:
